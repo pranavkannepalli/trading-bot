@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+# When executed as a script (e.g. `python trading_bot/demo_non_agentic_boundary.py`),
+# sys.path[0] becomes `.../trading_bot`, which would shadow the stdlib `types` module
+# with `./trading_bot/types.py`. Fix sys.path early.
+import sys
+import os
+
+if __package__ is None or __package__ == "":
+    # Derive paths without importing pathlib (which triggers stdlib imports
+    # that would fail if stdlib `types` is shadowed).
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.dirname(script_dir)
+
+    # Remove the script directory so `import types` resolves to the stdlib.
+    real_script_dir = os.path.realpath(script_dir)
+    sys.path = [p for p in sys.path if os.path.realpath(p) != real_script_dir]
+    sys.path.insert(0, repo_root)
+
 import argparse
 import json
 import math

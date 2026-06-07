@@ -1,7 +1,9 @@
 import json
 import os
+import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 
 from trading_bot.demo_non_agentic_boundary import main
 
@@ -50,6 +52,36 @@ class TestNonAgenticCoreBoundaryDemo(unittest.TestCase):
             self.assertIn("option", first_step)
             self.assertIn("greeks", first_step["option"])
             self.assertIn("delta", first_step["option"]["greeks"])
+
+
+    def test_demo_script_can_run_as_one_command(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as d:
+            cmd = [
+                "python3",
+                "trading_bot/demo_non_agentic_boundary.py",
+                "--out",
+                d,
+                "--case",
+                "counsel_strict_delta",
+                "--steps",
+                "20",
+                "--quantity",
+                "5",
+                "--core-max-abs-total-delta",
+                "1000",
+                "--max-abs-total-delta-from-counsel",
+                "2.0",
+            ]
+            res = subprocess.run(cmd, cwd=str(repo_root), capture_output=True, text=True)
+            self.assertEqual(
+                res.returncode,
+                0,
+                msg=f"CLI run failed. stdout:\n{res.stdout}\nstderr:\n{res.stderr}",
+            )
+
+            p = os.path.join(d, "non_agentic_core_boundary_demo.json")
+            self.assertTrue(os.path.exists(p))
 
 
 if __name__ == "__main__":
