@@ -25,6 +25,12 @@ This writes:
 - `artifacts/non_agentic_core_boundary_demo.json` (full decisions, greeks, and fills)
 - `artifacts/summary.json` (small summary)
 
+### What to look for (boundary proof)
+- In `non_agentic_core_boundary_demo.json`, each step has:
+  - `proposed_orders` (strategy output)
+  - `decisions` with `risk` (core-computed deltas/vegas) and `allowed`
+  - when `--case counsel_strict_delta` is used, `advice.max_abs_total_delta` acts as the counsel-provided risk cap (orders exceeding the cap become `allowed: false`).
+
 ### Run tests
 
 ```bash
