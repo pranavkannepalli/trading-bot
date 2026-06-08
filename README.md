@@ -21,7 +21,7 @@ python3 trading_bot/demo_non_agentic_boundary.py \
   --max-abs-total-delta-from-counsel 2.0
 ```
 
-This writes:
+This writes (the output folder is gitignored):
 - `artifacts/non_agentic_core_boundary_demo.json` (full decisions, greeks, and fills)
 - `artifacts/summary.json` (small summary)
 
