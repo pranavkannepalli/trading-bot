@@ -36,3 +36,11 @@ This writes (the output folder is gitignored):
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
+
+### Evidence (local)
+- Demo CLI created:
+  - `artifacts/non_agentic_core_boundary_demo.json`
+  - `artifacts/summary.json`
+- Risk-caps-only counsel:
+  - `StrictDeltaCounsel` returns `Advice(max_abs_total_delta=...)` and the core uses it as `max_abs_total_delta` while deciding `allowed`.
+- Unit tests exercised the caps enforcement + JSON artifact writing.
