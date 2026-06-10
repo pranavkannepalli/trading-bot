@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# Demo artifact output (produced by demo CLI; should not be committed)
+artifacts/

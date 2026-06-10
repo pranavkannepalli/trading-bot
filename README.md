@@ -21,7 +21,7 @@ python3 trading_bot/demo_non_agentic_boundary.py \
   --max-abs-total-delta-from-counsel 2.0
 ```
 
-This writes:
+This writes (the output folder is gitignored):
 - `artifacts/non_agentic_core_boundary_demo.json` (full decisions, greeks, and fills)
 - `artifacts/summary.json` (small summary)
 
@@ -36,3 +36,11 @@ This writes:
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py'
 ```
+
+### Evidence (local)
+- Demo CLI created:
+  - `artifacts/non_agentic_core_boundary_demo.json`
+  - `artifacts/summary.json`
+- Risk-caps-only counsel:
+  - `StrictDeltaCounsel` returns `Advice(max_abs_total_delta=...)` and the core uses it as `max_abs_total_delta` while deciding `allowed`.
+- Unit tests exercised the caps enforcement + JSON artifact writing.
