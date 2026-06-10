@@ -348,7 +348,13 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     os.makedirs(args.out, exist_ok=True)
 
-    closes = _make_closes(args.steps)
+    window_size = 5
+    lag_steps = 2
+
+    # `--steps` should map to the number of environment iterations / artifact steps.
+    # The env starts at t = window_size * lag_steps, so we need `start_t + args.steps` total closes.
+    closes = _make_closes(window_size * lag_steps + args.steps)
+
     strategy = RegimeAwareOptionStrategy(
         underlying="MOCK",
         strike=100.0,
@@ -361,8 +367,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         counsel = StrictDeltaCounsel(max_abs_total_delta=args.max_abs_total_delta_from_counsel)
 
     runner = NonAgenticOptionsBacktestRunner(
-        window_size=5,
-        lag_steps=2,
+        window_size=window_size,
+        lag_steps=lag_steps,
         underlying="MOCK",
         strike=100.0,
         expiry_years=0.25,
