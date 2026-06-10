@@ -28,7 +28,13 @@ class Fill:
 class Advice:
     """Contract between the strategy proposed orders and the LLM-counsel adapter."""
 
+    # Quantity clamp (works for both spot/equities and options orders).
     max_order_quantity: Optional[float] = None
+
+    # Optional risk clamps applied by the non-agentic core boundary.
+    # Values are interpreted as absolute caps on the *total* risk contributed by an order.
+    max_abs_total_delta: Optional[float] = None
+    max_abs_total_vega: Optional[float] = None
 
 
 @dataclass(frozen=True)
