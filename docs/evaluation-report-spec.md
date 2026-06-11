@@ -1,9 +1,10 @@
 # Evaluation Report Specification
 ## Trading Bot (LLM Counsel) — Non-Agentic Core Boundary
 
-**Status:** Draft RFC  
+**Status:** RFC Completed  
 **Author:** nerd (research sweep)  
 **Date:** 2026-06-10  
+**Last Updated:** 2026-06-10 (added Omega Ratio, SQN, K-Ratio calculation references)  
 **Scope:** Independent non-agentic trading engine with regime detection, options risk/greeks, backtesting, and optional LLM counsel boundaries.
 
 ---
@@ -174,7 +175,9 @@ The evaluation report is a single JSON document with the following top-level sec
       "sortino_ratio": 2.40,
       "calmar_ratio": 2.10,
       "information_ratio": null,
-      "omega_ratio": 1.50
+      "omega_ratio": 1.50,
+      "sqn": 3.20,
+      "k_ratio": 2.15
     },
     "trades_summary": {
       "total_trades": 24,
@@ -441,6 +444,44 @@ calmar = annualized_return / abs(mdd_pct / 100)
 ```
 expectancy = (win_rate * avg_win) - ((1-win_rate) * avg_loss)
 ```
+
+### 5.10 Omega Ratio
+```
+omg = integral(L to inf, 1-F(x))dx / integral(-inf to L, F(x))dx
+```
+Where `L` is the threshold return (default: risk-free rate per step) and `F(x)` is the cumulative distribution of step returns.
+Practically computed as:
+```
+omg = sum(max(r - L, 0) for r in returns) / sum(max(L - r, 0) for r in returns)
+```
+An Omega Ratio > 1 indicates the strategy's gains outweigh its losses relative to the threshold. Values below 1 suggest the strategy underperforms the threshold.
+
+### 5.11 SQN (System Quality Number — Van Tharp, 2008)
+```
+R = [trade_pnl / abs(trade_entry_cost) for trade in trades]
+sqn = sqrt(N) * mean(R) / std(R)
+```
+Where `N` is the number of trades and `R` is the R-multiple per trade. This metric combines expectancy, consistency, and opportunity frequency into a single number.
+
+**Interpretation:**
+| SQN | Rating |
+|-----|--------|
+| < 1.0 | Poor |
+| 1.0–1.9 | Below average |
+| 2.0–2.9 | Average |
+| 3.0–4.9 | Good |
+| 5.0–6.9 | Excellent |
+| > 7.0 | Holy Grail (suspicious) |
+
+**Note:** SQN is included as an optional metric in `performance.ratios` under the key `sqn`. It is `null` when fewer than 10 trades exist (low statistical significance).
+
+### 5.12 K-Ratio (Lars Kestner, 1996)
+```
+k_ratio = slope(equity_curve) / (standard_error_of_slope * sqrt(N))
+```
+Where `slope` is the linear regression slope of the equity curve against time steps, and `standard_error_of_slope` is the regression's standard error. The K-Ratio measures consistency of returns: a higher value indicates a smoother, more reliable equity curve.
+
+**Interpretation:** K-Ratio > 2.0 is considered strong consistency. Values near 0 indicate erratic performance. This metric is optional under `performance.ratios.k_ratio`.
 
 ## 6. Implementation Notes
 
