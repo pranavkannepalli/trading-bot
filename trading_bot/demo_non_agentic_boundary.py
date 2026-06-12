@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from typing import Any, Optional
 
 from trading_bot.envs import StaggeredInputEnv
+from trading_bot.evaluation_report import build_evaluation_report
 from trading_bot.execution import BacktestExecutionEngine
 from trading_bot.llm_counsel import LLMCounsel
 from trading_bot.option_pricing import black_scholes_greeks
@@ -344,6 +345,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     p.add_argument("--core-max-abs-total-vega", type=float, default=1e9)
     p.add_argument("--max-abs-total-delta-from-counsel", type=float, default=2.0)
     p.add_argument("--steps", type=int, default=60)
+    p.add_argument("--report", default=True, action=argparse.BooleanOptionalAction,
+                   help="Generate evaluation report (evaluation_report.json)")
     args = p.parse_args(argv)
 
     os.makedirs(args.out, exist_ok=True)
@@ -394,6 +397,40 @@ def main(argv: Optional[list[str]] = None) -> int:
     }
     with open(os.path.join(args.out, "summary.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
+
+    # Generate the full evaluation report.
+    if args.report:
+        strategy_config = {
+            "underlying": "MOCK",
+            "strike": 100.0,
+            "expiry_years": 0.25,
+            "quantity_per_step": float(args.quantity),
+        }
+        run_config = {
+            "core_max_abs_total_delta": float(args.core_max_abs_total_delta),
+            "core_max_abs_total_vega": float(args.core_max_abs_total_vega),
+        }
+        counsel_type = None
+        counsel_config = None
+        if counsel is not None:
+            counsel_type = "StrictDeltaCounsel"
+            counsel_config = {
+                "max_abs_total_delta": float(args.max_abs_total_delta_from_counsel),
+            }
+
+        report = build_evaluation_report(
+            artifacts=artifacts,
+            strategy_name=strategy.name,
+            strategy_class=strategy.__class__.__name__,
+            strategy_config=strategy_config,
+            counsel_type=counsel_type,
+            counsel_config=counsel_config,
+            run_config=run_config,
+            closes=closes,
+        )
+        report_path = os.path.join(args.out, "evaluation_report.json")
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
 
     return 0
 
